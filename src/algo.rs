@@ -128,12 +128,12 @@ impl Algorithms {
         let child_nodes = self.get_ordered_valid_moves(&mut state, self.perspective);
         let n_threads = num_cpus::get();
         let results = Mutex::new(Vec::new());
-        (0..n_threads).into_par_iter().for_each(|i| {
-            let result = self.search_multi_worker(child_nodes[i..child_nodes.len()].iter().step_by(n_threads), state.copy(), depth - 1, 1.0, f32::MIN, f32::MAX);
+        (0..(n_threads.min(child_nodes.len()))).into_par_iter().for_each(|i| {
+            let result = self.search_multi_worker(child_nodes[i.min(child_nodes.len())..child_nodes.len()].iter().step_by(n_threads), state.copy(), depth - 1, 1.0, f32::MIN, f32::MAX);
             results.lock().unwrap().push(result);
         });
         let res = results.lock().unwrap().clone();
-        let best = res.iter().min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)).unwrap();
+        let best = res.iter().max_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal)).unwrap();
         return best.clone();
     }
 }

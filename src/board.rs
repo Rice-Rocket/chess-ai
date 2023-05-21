@@ -132,16 +132,26 @@ impl Board {
         if piece.ptype == PieceType::King {
             if self.is_castling(start.copy(), end.copy()) && !simulation && !ignore_castle {
                 let diff = end.copy().col as isize - start.copy().col as isize;
-                let mut rook;
-                if diff < 0 {
-                    rook = self.castle_rooks.get(&piece).unwrap()[0].unwrap();
+                let rook = if diff < 0 {
+                    match self.castle_rooks.get(&piece) {
+                        Some(val) => val[0],
+                        None => None
+                    }
                 }
                 else {
-                    rook = self.castle_rooks.get(&piece).unwrap()[1].unwrap();
-                }
+                    match self.castle_rooks.get(&piece) {
+                        Some(val) => val[1],
+                        None => None
+                    }
+                };
                 was_castle = true;
-                let action = self.castle_moves.get(&rook).unwrap().clone().unwrap();
-                self.execute_move(&mut rook, action, false, false);
+                match rook {
+                    Some(mut piece) => {
+                        let action = self.castle_moves.get(&piece).unwrap().clone().unwrap();
+                        self.execute_move(&mut piece, action, false, false); 
+                    },
+                    None => ()
+                }
             }
         }
 
